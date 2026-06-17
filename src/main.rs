@@ -246,10 +246,10 @@ This wiki is designed for AI agent workflows:
     ];
 
     for (slug, title, body) in &samples {
-        let page_path = path.join(format!("{slug}.md"));
+        let page_path = path.join(format!("{slug}.jrg"));
         if !page_path.exists() {
             std::fs::write(&page_path, body)
-                .with_context(|| format!("failed to write {slug}.md"))?;
+                .with_context(|| format!("failed to write {slug}.jrg"))?;
             eprintln!("  Created: {slug} ({title})");
         }
     }
@@ -308,7 +308,7 @@ fn cmd_add(
     }
 
     // Write the file
-    let file_path = root.join(format!("{slug}.md"));
+    let file_path = root.join(format!("{slug}.jrg"));
     std::fs::write(&file_path, &content)
         .with_context(|| format!("failed to write {}", file_path.display()))?;
 
@@ -337,7 +337,7 @@ fn cmd_get(path: PathBuf, slug: String) -> Result<()> {
 
 /// Delete a wiki page.
 fn cmd_rm(path: PathBuf, slug: String) -> Result<()> {
-    let file_path = path.join(format!("{slug}.md"));
+    let file_path = path.join(format!("{slug}.jrg"));
     if !file_path.exists() {
         anyhow::bail!("page not found: {slug}");
     }
@@ -353,7 +353,7 @@ fn cmd_create(path: PathBuf, slug: String, title: Option<String>) -> Result<()> 
     let title = title.unwrap_or_else(|| slug.clone());
     wiki.create_page(&slug, &title, "Write your content here.")?;
     println!("✓ Created: {slug} ({title})");
-    eprintln!("  Edit: {}/{slug}.md", path.display());
+    eprintln!("  Edit: {}/{slug}.jrg", path.display());
     Ok(())
 }
 

@@ -1,4 +1,4 @@
-//! Wiki content model — pages stored as markdown files, served as JRG pages.
+//! Wiki content model — pages stored as JRG files, served over the JRG protocol.
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -86,7 +86,7 @@ impl Wiki {
             WikiConfig::default()
         };
 
-        // Scan for markdown files (skip README.md and wiki.yaml)
+        // Scan for .jrg files (skip README.jrg and wiki.yaml)
         let mut pages = HashMap::new();
         let entries = fs::read_dir(&root)
             .context("failed to read wiki directory")?;
@@ -95,8 +95,8 @@ impl Wiki {
             let entry = entry?;
             let path = entry.path();
 
-            // Only read .md files (skip README, skip wiki.yaml)
-            if path.extension().and_then(|s| s.to_str()) != Some("md") {
+            // Only read .jrg files (skip README.jrg, skip wiki.yaml)
+            if path.extension().and_then(|s| s.to_str()) != Some("jrg") {
                 continue;
             }
             let filename = path.file_stem()
@@ -131,7 +131,7 @@ impl Wiki {
 
     /// Reload a single page by slug.
     pub fn reload_page(&mut self, slug: &str) -> Result<()> {
-        let path = self.root.join(format!("{slug}.md"));
+        let path = self.root.join(format!("{slug}.jrg"));
         if !path.exists() {
             self.pages.remove(slug);
             return Ok(());
@@ -156,7 +156,7 @@ impl Wiki {
 
     /// Create a new wiki page.
     pub fn create_page(&self, slug: &str, title: &str, body: &str) -> Result<()> {
-        let path = self.root.join(format!("{slug}.md"));
+        let path = self.root.join(format!("{slug}.jrg"));
         let content = format!(
             "---\ntitle: {title}\ntags: []\n---\n\n# {title}\n\n{body}\n"
         );

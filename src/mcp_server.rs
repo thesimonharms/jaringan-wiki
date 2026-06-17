@@ -196,9 +196,9 @@ fn handle_tool_call(
                 return Err("slug may only contain alphanumeric chars, hyphens, underscores, and forward slashes".into());
             }
 
-            let file_path = wiki.root.join(format!("{slug}.md"));
+            let file_path = wiki.root.join(format!("{slug}.jrg"));
             std::fs::write(&file_path, content)
-                .map_err(|e| format!("failed to write {slug}.md: {e}"))?;
+                .map_err(|e| format!("failed to write {slug}.jrg: {e}"))?;
 
             Ok(serde_json::json!({
                 "status": "ok",

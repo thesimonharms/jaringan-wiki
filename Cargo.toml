@@ -1,0 +1,26 @@
+[package]
+name = "jaringan-wiki"
+version = "0.1.0"
+edition = "2021"
+description = "AI-powered private wikis over the Jaringan protocol"
+license = "MIT"
+repository = "https://github.com/thesimonharms/jaringan-wiki"
+readme = "README.md"
+
+[dependencies]
+jaringan-core = { path = "../jaringan/crates/jaringan-core" }
+jaringan-protocol = { path = "../jaringan/crates/jaringan-protocol" }
+jaringan-gateway = { path = "../jaringan/crates/jaringan-gateway" }
+jaringan-render = { path = "../jaringan/crates/jaringan-render" }
+baochuan = { path = "../baochuan" }
+anyhow = "1.0"
+clap = { version = "4.5", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+tokio = { version = "1.38", features = ["full"] }
+axum = "0.7"
+reqwest = { version = "0.12", features = ["json", "blocking"] }
+tower-http = { version = "0.5", features = ["cors"] }
+chrono = { version = "0.4", features = ["serde"] }
+futures-util = "0.3"

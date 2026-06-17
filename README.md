@@ -76,16 +76,18 @@ jaringan-wiki-mcp --wiki-path ~/my-wiki
 | `wiki_search(query)` | Full-text search — returns matching pages with snippets |
 | `wiki_list()` | List all pages with slugs, titles, tags, timestamps |
 
-## How `jrg://wiki/` works
+## How the URI works
 
-`jrg://` is the Jaringan protocol URI scheme. The host part (`wiki`) routes to the wiki server (via DNS, Cloudflare tunnel, or local config). The resolver ignores the host and only looks at the path:
+`jrg://` is the Jaringan protocol scheme. The host part is **advisory** — the resolver
+doesn't validate or resolve it via DNS. It only looks at the **path**. The same server
+responds identically to `jrg://wiki/welcome`, `jrg://my-wiki/welcome`, or
+`jrg://anything/welcome` — the host is just a label passed through to the resolver.
 
 | URL | Resolves to |
 |-----|-------------|
-| `jrg://wiki/` | Wiki index (page listing) |
-| `jrg://wiki/welcome` | Welcome page |
-| `jrg://wiki/research-notes` | Research notes page |
-| `jrg://wiki/wiki/welcome` | Also works (`wiki/` prefix is optional) |
+| `jrg://<any>/` | Wiki index (page listing) |
+| `jrg://<any>/welcome` | Welcome page |
+| `jrg://<any>/wiki/welcome` | Also works (`wiki/` prefix is optional) |
 
 Running `jaringan-wiki serve` binds a JRG TCP server that handles all incoming requests regardless of hostname.
 

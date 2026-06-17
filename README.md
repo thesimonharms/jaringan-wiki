@@ -2,7 +2,7 @@
 
 **AI-powered private wikis over the Jaringan protocol.**
 
-A wiki server that turns a directory of markdown files into signed, encrypted Jaringan pages — browseable with the [Jaringan Browser](https://github.com/thesimonharms/jaringan). AI features (semantic search, summarisation, Q&A, page generation) via the [baochuan](https://github.com/thesimonharms/baochuan) Rust AI client.
+A wiki server that turns a directory of markdown files into Jaringan pages — browseable with the [Jaringan Browser](https://github.com/thesimonharms/jaringan). Designed for both **human and AI agent** use via CLI and MCP.
 
 ## Quick Start
 
@@ -13,20 +13,81 @@ jaringan-wiki init ~/my-wiki
 # Serve it over Jaringan
 jaringan-wiki serve ~/my-wiki
 
-# In another terminal, browse with the Jaringan Browser
-jaringan-browser jrg://wiki/
+# Browse with the Jaringan Browser at jrg://wiki/
+# (the wiki host is routed to your server; path / returns the index)
 ```
 
-## Commands
+## CLI
 
 | Command | Description |
 |---------|-------------|
 | `init <path>` | Initialise a new wiki directory with sample pages |
-| `create <path> <slug>` | Create a new wiki page |
-| `serve <path>` | Serve wiki as a JRG TCP server |
-| `search <path> <query>` | Full-text search across wiki pages |
-| `list <path>` | List all pages in the wiki |
-| `generate <path> <prompt>` | AI: generate a page from a description |
+| `add <path> <slug> <markdown>` | Add/update a page from content (agent-friendly) |
+| `get <path> <slug>` | Print raw markdown to stdout |
+| `rm <path> <slug>` | Delete a page |
+| `list <path>` | List all pages |
+| `search <path> <query>` | Full-text search |
+| `dump <path>` | Batch-read all pages as JSON |
+| `add <path> <slug> --stdin` | Pipe content from stdin |
+| `list --json` / `search --json` | Machine-parseable output |
+
+### Agent workflow
+
+```bash
+# Build a knowledge base from AI output
+jaringan-wiki add . research-notes '# Research Notes
+
+Key findings from the experiment...'
+
+# Read pages for context
+jaringan-wiki get . research-notes
+
+# Search across pages
+jaringan-wiki search . "key findings" --json
+
+# Batch-read everything
+jaringan-wiki dump .
+```
+
+## MCP Server
+
+For AI agents that speak the Model Context Protocol (Claude Code, Hermes, Cursor, etc.):
+
+```bash
+# Start the MCP server (stdio transport)
+jaringan-wiki-mcp --wiki-path ~/my-wiki
+
+# Configure in Claude Code:
+# > /mcp add wiki -- npx jaringan-wiki-mcp --wiki-path ~/my-wiki
+
+# Configure in Hermes Agent (~/.hermes/config.yaml):
+# mcp_servers:
+#   wiki:
+#     command: jaringan-wiki-mcp
+#     args: ["--wiki-path", "~/my-wiki"]
+```
+
+### MCP Tools
+
+| Tool | Description |
+|------|-------------|
+| `wiki_read(slug)` | Read a page by slug — returns title, body, tags, links |
+| `wiki_write(slug, content)` | Create or update a page with full markdown content |
+| `wiki_search(query)` | Full-text search — returns matching pages with snippets |
+| `wiki_list()` | List all pages with slugs, titles, tags, timestamps |
+
+## How `jrg://wiki/` works
+
+`jrg://` is the Jaringan protocol URI scheme. The host part (`wiki`) routes to the wiki server (via DNS, Cloudflare tunnel, or local config). The resolver ignores the host and only looks at the path:
+
+| URL | Resolves to |
+|-----|-------------|
+| `jrg://wiki/` | Wiki index (page listing) |
+| `jrg://wiki/welcome` | Welcome page |
+| `jrg://wiki/research-notes` | Research notes page |
+| `jrg://wiki/wiki/welcome` | Also works (`wiki/` prefix is optional) |
+
+Running `jaringan-wiki serve` binds a JRG TCP server that handles all incoming requests regardless of hostname.
 
 ## Wiki Format
 
@@ -44,7 +105,7 @@ Content here. Link to other pages with [[page-slug]]
 or [[page-slug|Display Text]].
 ```
 
-The server converts them to signed Jaringan pages on the fly. Wiki links `[[slug]]` become `jrg://wiki/slug` links.
+The server converts `[[slug]]` links to `jrg://wiki/slug` links automatically.
 
 ## AI Features
 
@@ -57,13 +118,6 @@ Set one of these environment variables to enable AI:
 | `XAI_API_KEY` | xAI Grok |
 | `AI_MODEL` | Model override (default: `gpt-4o-mini`) |
 
-Features:
-- **Semantic search** — find pages by meaning, not just keywords
-- **Page summarisation** — one-line summaries for quick scanning
-- **Q&A** — "ask the wiki" about its content
-- **Auto-linking** — suggest wiki links between related pages
-- **Page generation** — create new pages from a prompt
-
 > *AI methods are stubbed in v0.1 — full baochuan integration coming next.*
 
 ## Architecture
@@ -71,22 +125,19 @@ Features:
 ```
 jaringan-wiki/
 ├── src/
-│   ├── main.rs      # CLI (clap)
-│   ├── lib.rs       # Public API
-│   ├── wiki.rs      # Content model + markdown parsing
-│   ├── resolver.rs  # JRG PageResolver implementation
-│   ├── search.rs    # Full-text search index
-│   └── ai.rs        # AI integration (baochuan)
-├── examples/        # Sample wikis
+│   ├── main.rs          # CLI (clap)
+│   ├── mcp_server.rs    # MCP server (stdio transport)
+│   ├── lib.rs           # Public API
+│   ├── wiki.rs          # Content model + markdown parsing
+│   ├── resolver.rs      # JRG PageResolver implementation
+│   ├── search.rs        # Full-text search index
+│   └── ai.rs            # AI integration (baochuan)
 └── README.md
 ```
 
-The wiki server implements the Jaringan `PageResolver` trait, so it works with any JRG-compatible client or gateway:
-
-```
-JRG Browser ──TCP──→ WikiResolver ──reads──→ *.md files
-                    (PageResolver)
-```
+Two runnable binaries are built:
+- `jaringan-wiki` — CLI for humans and agents
+- `jaringan-wiki-mcp` — MCP stdio server for AI agent tool integration
 
 ## License
 

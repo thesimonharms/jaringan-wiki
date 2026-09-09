@@ -1,3 +1,7 @@
+> **Moved.** This GitHub copy is an archive. Use the Forgejo repository.
+>
+> **Canonical repository:** https://git.simonharms.com/thesimonharms/jaringan-wiki
+
 # jaringan-wiki
 
 **AI-powered private wikis over the Jaringan protocol.**
